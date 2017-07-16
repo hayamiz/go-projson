@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.6
+  - 1.7
+  - 1.8
+
+script:
+  go test -v -cover
+
+notifications:
+  slack:
+    rooms:
+      - pokeme:dCEQa2YqDZ5p5RgwYtcfo3SA
