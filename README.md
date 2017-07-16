@@ -1,6 +1,6 @@
 # go-projson
 
-<a href"https://travis-ci.org/hayamiz/go-projson"><img src="https://travis-ci.org/hayamiz/go-projson.svg?branch=master" /><a>
+[<img src="https://travis-ci.org/hayamiz/go-projson.svg?branch=master" />](https://travis-ci.org/hayamiz/go-projson)
 
 Procedural JSON printer for Go
 
