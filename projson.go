@@ -24,6 +24,7 @@ type JsonPrinter struct {
 	state     printerState
 	pathStack *list.List
 	buffer    *bytes.Buffer
+	err       error
 }
 
 type frameType int
@@ -42,9 +43,20 @@ func NewPrinter() *JsonPrinter {
 	printer := &JsonPrinter{
 		pathStack: list.New(),
 		buffer:    bytes.NewBuffer([]byte{}),
+		err:       nil,
 	}
 
 	return printer
+}
+
+func (printer *JsonPrinter) Reset() {
+	printer.pathStack = list.New()
+	printer.buffer = bytes.NewBuffer([]byte{})
+	printer.err = nil
+}
+
+func (printer *JsonPrinter) Error() error {
+	return printer.err
 }
 
 func (printer *JsonPrinter) String() string {
@@ -52,13 +64,18 @@ func (printer *JsonPrinter) String() string {
 }
 
 func (printer *JsonPrinter) BeginArray() error {
+	if printer.err != nil {
+		return printer.err
+	}
+
 	switch printer.state {
 	case stateInit: // OK
 	case stateArray0: // OK
 	case stateArray1: // OK
 	case stateObjectKeyed: // OK
 	default:
-		return errors.New("Cannot start array in this context")
+		printer.err = errors.New("Cannot start array in this context")
+		return printer.err
 	}
 
 	if printer.state == stateArray1 {
@@ -80,16 +97,22 @@ func (printer *JsonPrinter) BeginArray() error {
 }
 
 func (printer *JsonPrinter) FinishArray() error {
+	if printer.err != nil {
+		return printer.err
+	}
+
 	switch printer.state {
 	case stateArray0: // OK
 	case stateArray1: // OK
 	default:
-		return errors.New("Cannot finish array ini this context")
+		printer.err = errors.New("Cannot finish array ini this context")
+		return printer.err
 	}
 
 	if printer.pathStack.Len() == 0 ||
 		printer.pathStack.Back().Value.(*pathStackFrame).typ != frameArray {
-		return errors.New("No array stack frame found")
+		printer.err = errors.New("No array stack frame found")
+		return printer.err
 	}
 
 	printer.buffer.WriteString("]")
@@ -104,7 +127,8 @@ func (printer *JsonPrinter) FinishArray() error {
 		case frameObject:
 			printer.state = stateObject0
 		default:
-			return errors.New("Cannot happen this case")
+			printer.err = errors.New("Cannot happen this case")
+			return printer.err
 		}
 	}
 
@@ -117,7 +141,8 @@ func (printer *JsonPrinter) PutInt(v int) error {
 	case stateArray0: // OK
 	case stateArray1: // OK
 	default:
-		return errors.New("Cannot put int in this context")
+		printer.err = errors.New("Cannot put int in this context")
+		return printer.err
 	}
 
 	if printer.state == stateArray0 || printer.state == stateInit {
@@ -143,7 +168,8 @@ func (printer *JsonPrinter) PutString(v string) error {
 	case stateArray0: // OK
 	case stateArray1: // OK
 	default:
-		return errors.New("Cannot put string in this context")
+		printer.err = errors.New("Cannot put string in this context")
+		return printer.err
 	}
 
 	vs, err := json.Marshal(v)
