@@ -1,14 +1,9 @@
 language: go
-
 go:
-  - 1.6
-  - 1.7
-  - 1.8
-
-script:
-  go test -v -cover
-
+- 1.6
+- 1.7
+- 1.8
+script: go test -v -cover
 notifications:
   slack:
-    rooms:
-      - pokeme:dCEQa2YqDZ5p5RgwYtcfo3SA
+    secure: bG/r/lNrtrsrH274DYdaDv+A4iTtl+UV36Eh13TBjVb/c8Jy0i9vDNWetxG0AMs+bCbZcuK9cmpfUtQcXs4gHgD/vB29q2Cr3JZWNse3/wH2Jr5aTxcWSnDKnUBI2khmdJz+u9uJF4iW8OqkwjyZ718xwhay7y+tFregm2rK6hsEN7MvRra+ZyQqZgeXttoExSjxQ8ib/M7dCl4ULKnC/AUIW3q8xzE4hsTerOVEquOm/0IqOM1yNemclaY1iwfX81Vaa1K2AcGYJswgXkH27ihMtfskJkUNFLg/WHUkcxthLnWcQDA0L6KWX0iU6WlEDp4UoXTvR/UrdFVpzwQRBof5+7V1T+ZnzXhfmpQQSuyi/9WArq3a+nn/shSRdW6A+5XBAQyT6todJXHxeM9wAC3kBdcljbD18RnBjlpFwEzChn5CZpAYBUS2jucyRkAPp8jtQ/b50I6wG8wAKesvVEUJRYjs4pq65xE1B2aJ+H1n3e3rbmf9bsEiS8CAdZ2I7jiNDB7MitAKNK1kU5WjiCSc+5ro3enKPCOWzT1lH52Ek0YD98ncixgsRqUYNJvjm9NQBv9BHrw2vCLyIAyLSFE7wLgu9Df7xvahBsD/x8+qHfKbs4C4qracr7Ks1ctQCME+EDlP50PnRZujv8YPwM+1Dg1Aqt7iUcL8hVjkahQ=
