@@ -97,6 +97,25 @@ func TestArraySimple(t *testing.T) {
 	}
 }
 
+func TestArrayEmpty(t *testing.T) {
+	var err error
+	jp := NewPrinter()
+
+	jp.BeginArray()
+	jp.FinishArray()
+
+	if jp.Error() != nil {
+		t.Errorf("JSON printing failed.")
+	}
+
+	expected := `[]`
+	actual := jp.String()
+	if expected != actual {
+		t.Errorf("Unexpected JSON output\nexpected: %v\nactual: %v",
+			expected, actual)
+	}
+}
+
 func TestArray(t *testing.T) {
 	var err error
 	jp := NewPrinter()
@@ -145,5 +164,46 @@ func TestArray(t *testing.T) {
 
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
+	}
+}
+
+func TestObjectSimple(t *testing.T) {
+	var err error
+
+	jp := NewPrinter()
+
+	jp.BeginObject()
+	jp.PutKey("key1")
+	jp.PutInt(10)
+	jp.FinishObject()
+
+	if jp.Error() != nil {
+		t.Errorf("JSON printing failed.")
+	}
+
+	expected := `{"key1":10}`
+	actual := jp.String()
+
+	if expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
+}
+
+func TestObjectEmpty(t *testing.T) {
+	var err error
+	jp := NewPrinter()
+
+	jp.BeginObject()
+	jp.FinishObject()
+
+	if jp.Error() != nil {
+		t.Errorf("JSON printing failed.")
+	}
+
+	expected := `{}`
+	actual := jp.String()
+	if expected != actual {
+		t.Errorf("Unexpected JSON output\nexpected: %v\nactual: %v",
+			expected, actual)
 	}
 }
