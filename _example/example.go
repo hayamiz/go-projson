@@ -10,6 +10,13 @@ import (
 func main() {
 	jp := projson.NewPrinter()
 
+	jp.PutInt(42)
+
+	str, _ := jp.String()
+	fmt.Println(str)
+
+	jp.Reset()
+
 	jp.BeginArray()
 	{
 		jp.PutInt(10)
@@ -26,6 +33,6 @@ func main() {
 	}
 	jp.FinishArray()
 
-	str, _ := jp.String()
-	fmt.Println(str)
+	str, _ = jp.String()
+	fmt.Println(str) // => [10,20,"hello","double quote \" string",[30,40],50]
 }

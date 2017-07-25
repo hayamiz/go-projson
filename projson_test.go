@@ -25,7 +25,6 @@ func TestInt(t *testing.T) {
 		t.Error("expected: err != nil\nactual: err == nil")
 		return
 	}
-
 }
 
 func TestFloat(t *testing.T) {
@@ -49,7 +48,6 @@ func TestFloat(t *testing.T) {
 		t.Error("expected: err != nil\nactual: err == nil")
 		return
 	}
-
 }
 
 func TestString(t *testing.T) {
@@ -70,6 +68,27 @@ func TestString(t *testing.T) {
 	err = jp.PutInt(56789)
 	if err == nil {
 		t.Error("expected: err != nil\nactual: err == nil")
+	}
+}
+
+func TestReset(t *testing.T) {
+	jp := NewPrinter()
+
+	jp.PutInt(42)
+	str, err := jp.String()
+	if str != "42" {
+		t.Errorf("expected: 42, actual: %s", str)
+	}
+
+	jp.Reset()
+
+	jp.PutInt(1192)
+	str, err = jp.String()
+	if err != nil {
+		t.Errorf("expected: err == nil, actual: err != nil")
+	}
+	if str != "1192" {
+		t.Errorf("expected: 1192, actual: %s", str)
 	}
 }
 

@@ -41,6 +41,7 @@ type pathStackFrame struct {
 
 func NewPrinter() *JsonPrinter {
 	printer := &JsonPrinter{
+		state:     stateInit,
 		pathStack: list.New(),
 		buffer:    bytes.NewBuffer([]byte{}),
 		err:       nil,
@@ -50,6 +51,7 @@ func NewPrinter() *JsonPrinter {
 }
 
 func (printer *JsonPrinter) Reset() {
+	printer.state = stateInit
 	printer.pathStack = list.New()
 	printer.buffer = bytes.NewBuffer([]byte{})
 	printer.err = nil
