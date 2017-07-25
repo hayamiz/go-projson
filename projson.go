@@ -59,8 +59,12 @@ func (printer *JsonPrinter) Error() error {
 	return printer.err
 }
 
-func (printer *JsonPrinter) String() string {
-	return printer.buffer.String()
+func (printer *JsonPrinter) String() (string, error) {
+	if printer.state == stateInit || printer.state == stateFinal {
+		return printer.buffer.String(), nil
+	}
+
+	return "", errors.New("Some object/array is not finished.")
 }
 
 func (printer *JsonPrinter) BeginArray() error {

@@ -11,15 +11,21 @@ func main() {
 	jp := projson.NewPrinter()
 
 	jp.BeginArray()
-	jp.PutInt(10)
-	jp.PutInt(20)
-	jp.PutString("hello")
-	jp.PutString("double quote \" string")
-	jp.BeginArray()
-	jp.PutInt(30)
-	jp.PutInt(40)
+	{
+		jp.PutInt(10)
+		jp.PutInt(20)
+		jp.PutString("hello")
+		jp.PutString("double quote \" string")
+		jp.BeginArray()
+		{
+			jp.PutInt(30)
+			jp.PutInt(40)
+		}
+		jp.FinishArray()
+		jp.PutInt(50)
+	}
 	jp.FinishArray()
-	jp.PutInt(50)
-	jp.FinishArray()
-	fmt.Println(jp.String())
+
+	str, _ := jp.String()
+	fmt.Println(str)
 }

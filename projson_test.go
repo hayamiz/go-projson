@@ -15,7 +15,7 @@ func TestInt(t *testing.T) {
 	}
 
 	expected := "12345"
-	actual := jp.String()
+	actual, _ := jp.String()
 	if actual != expected {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
 	}
@@ -39,7 +39,7 @@ func TestFloat(t *testing.T) {
 	}
 
 	expected := "0.5"
-	actual := jp.String()
+	actual, _ := jp.String()
 	if actual != expected {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
 	}
@@ -62,7 +62,7 @@ func TestString(t *testing.T) {
 	}
 
 	expected := "\"hello, world\""
-	actual := jp.String()
+	actual, _ := jp.String()
 	if actual != expected {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
 	}
@@ -107,6 +107,12 @@ func TestArraySimple(t *testing.T) {
 	jp.PutInt(1)
 	jp.PutString("two")
 	jp.PutInt(3)
+
+	_, err = jp.String()
+	if err == nil {
+		t.Errorf("error should be returned when calling String() for non-finished array")
+	}
+
 	jp.FinishArray()
 
 	if jp.Error() != nil {
@@ -114,7 +120,7 @@ func TestArraySimple(t *testing.T) {
 	}
 
 	expected := `[1,"two",3]`
-	actual := jp.String()
+	actual, _ := jp.String()
 	if expected != actual {
 		t.Errorf("Unexpected JSON output\nexpected: %v\nactual: %v",
 			expected, actual)
@@ -132,7 +138,7 @@ func TestArrayEmpty(t *testing.T) {
 	}
 
 	expected := `[]`
-	actual := jp.String()
+	actual, _ := jp.String()
 	if expected != actual {
 		t.Errorf("Unexpected JSON output\nexpected: %v\nactual: %v",
 			expected, actual)
@@ -183,7 +189,7 @@ func TestArray(t *testing.T) {
 	expectNil(t, err)
 
 	expected := `[1,2,"hello world",[4,[5,6],"fo\"o"]]`
-	actual := jp.String()
+	actual, _ := jp.String()
 
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
@@ -201,7 +207,7 @@ func TestArray2(t *testing.T) {
 	jp.FinishArray()
 	expectNil(t, jp.Error())
 	expected := `[1,"two",3.5]`
-	actual := jp.String()
+	actual, _ := jp.String()
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
 	}
@@ -216,7 +222,7 @@ func TestArray2(t *testing.T) {
 	jp.FinishArray()
 	expectNil(t, jp.Error())
 	expected = `["two",3.5,1]`
-	actual = jp.String()
+	actual, _ = jp.String()
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
 	}
@@ -231,7 +237,7 @@ func TestArray2(t *testing.T) {
 	jp.FinishArray()
 	expectNil(t, jp.Error())
 	expected = `[3.5,1,"two"]`
-	actual = jp.String()
+	actual, _ = jp.String()
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
 	}
@@ -243,6 +249,15 @@ func TestObjectSimple(t *testing.T) {
 	jp.BeginObject()
 	jp.PutKey("key1")
 	jp.PutInt(10)
+
+	str, err := jp.String()
+	if err == nil {
+		t.Errorf("error should be returned when calling String() for non-finished object")
+	}
+	if str != "" {
+		t.Errorf("empty string should be returned on error")
+	}
+
 	jp.FinishObject()
 
 	if jp.Error() != nil {
@@ -250,7 +265,7 @@ func TestObjectSimple(t *testing.T) {
 	}
 
 	expected := `{"key1":10}`
-	actual := jp.String()
+	actual, _ := jp.String()
 
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v", expected, actual)
@@ -268,7 +283,7 @@ func TestObjectEmpty(t *testing.T) {
 	}
 
 	expected := `{}`
-	actual := jp.String()
+	actual, _ := jp.String()
 	if expected != actual {
 		t.Errorf("Unexpected JSON output\nexpected: %v\nactual: %v",
 			expected, actual)
@@ -307,9 +322,16 @@ func TestObject(t *testing.T) {
 	}
 
 	expected := `{"key1":{"key2":{"key3":{"key4":"value4"},"key5":123}}}`
-	actual := jp.String()
+	actual, _ := jp.String()
 
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v", expected, actual)
 	}
+}
+
+func TestArraySimpleCompactStyle(t *testing.T) {
+	jp := NewPrinter()
+
+	jp.BeginArray()
+	jp.FinishArray()
 }
