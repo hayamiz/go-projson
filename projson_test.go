@@ -146,6 +146,23 @@ func TestArraySimple(t *testing.T) {
 	}
 }
 
+func TestPutArraySimple(t *testing.T) {
+	jp := NewPrinter()
+
+	jp.PutArray([]interface{}{1, 2, 3, "foo", 4.5})
+
+	expected := `[1,2,3,"foo",4.5]`
+	if actual, _ := jp.String(); expected != actual {
+		t.Errorf("Unexpected JSON output\nexpected: %v\nactual: %v",
+			expected, actual)
+	}
+
+	jp.Reset()
+	if err := jp.PutArray([]interface{}{complex128(1)}); err == nil {
+		t.Errorf("Should not accept values expect of int, string, and float64")
+	}
+}
+
 func TestArrayEmpty(t *testing.T) {
 	jp := NewPrinter()
 
@@ -348,9 +365,120 @@ func TestObject(t *testing.T) {
 	}
 }
 
-func TestArraySimpleCompactStyle(t *testing.T) {
+func TestSetStyle(t *testing.T) {
 	jp := NewPrinter()
 
+	err := jp.SetStyle(SimpleStyle, 80)
+	if err != nil {
+		t.Error("expected: err == nil, actual: err != nil")
+	}
+	err = jp.SetStyle(SmartStyle, 80)
+	if err != nil {
+		t.Error("expected: err == nil, actual: err != nil")
+	}
+	err = jp.SetStyle(PrettyStyle, 80)
+	if err != nil {
+		t.Error("expected: err == nil, actual: err != nil")
+	}
+
+	jp.PutInt(42)
+
+	err = jp.SetStyle(SimpleStyle, 80)
+	if err == nil {
+		t.Error("SetStyle should return error after putting items")
+	}
+}
+
+func TestArraySimpleSmartStyle(t *testing.T) {
+	jp := NewPrinter()
+
+	jp.SetStyle(SmartStyle, 10)
+
 	jp.BeginArray()
+	jp.PutInt(10)
+	jp.PutInt(20)
+	jp.PutInt(30)
+	jp.PutFloat(4.5)
+	jp.PutInt(50)
+	jp.PutFloat(60.5)
 	jp.FinishArray()
+
+	expected := `[10, 20,
+ 30, 4.5,
+ 50, 60.5]`
+	actual, _ := jp.String()
+
+	if expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
+
+	jp.Reset()
+	jp.SetStyle(SmartStyle, 10)
+
+	jp.BeginArray()
+	jp.PutString("1234567890")
+	jp.PutInt(10)
+	jp.PutInt(20)
+	jp.BeginArray()
+	jp.PutInt(1)
+	jp.PutInt(2)
+	jp.PutInt(3)
+	jp.PutInt(4)
+	jp.PutInt(5)
+	jp.PutInt(6)
+	jp.FinishArray()
+	jp.BeginArray()
+	jp.PutInt(1)
+	jp.PutInt(234)
+	jp.FinishArray()
+	jp.BeginArray()
+	jp.BeginArray()
+	jp.BeginArray()
+	jp.PutInt(1)
+	jp.FinishArray()
+	jp.FinishArray()
+	jp.FinishArray()
+	jp.FinishArray()
+
+	expected = `["1234567890",
+ 10, 20,
+ [1, 2, 3,
+  4, 5, 6
+  ],
+ [1, 234],
+ [[[1]]]]`
+	actual, _ = jp.String()
+
+	if expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
+}
+
+func TestObjectSimpleSmartStyle(t *testing.T) {
+	jp := NewPrinter()
+
+	jp.SetStyle(SmartStyle, 10)
+
+	jp.BeginObject()
+	jp.PutKey("key")
+	jp.PutString("val")
+	jp.PutKey("k")
+	jp.PutString("v")
+	jp.PutKey("k")
+	jp.BeginArray()
+	jp.PutInt(1)
+	jp.PutInt(2)
+	jp.FinishArray()
+	jp.FinishObject()
+
+	expected := `{"key":
+ "val",
+ "k": "v",
+ "k":
+ [1, 2]}`
+	actual, _ := jp.String()
+
+	if expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
 }

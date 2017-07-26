@@ -17,6 +17,12 @@ func main() {
 
 	jp.Reset()
 
+	jp.PutArray([]interface{}{1, 2, 3, 4.5, 5, "hoge"})
+	str, _ = jp.String() // => [1,2,3,4.5,5,"hoge"]
+	fmt.Println(str)
+
+	jp.Reset()
+
 	jp.BeginArray()
 	{
 		jp.PutInt(10)

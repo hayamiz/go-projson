@@ -5,6 +5,9 @@ import (
 	"container/list"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
+	"os/exec"
 	"strconv"
 )
 
@@ -24,7 +27,12 @@ type JsonPrinter struct {
 	state     printerState
 	pathStack *list.List
 	buffer    *bytes.Buffer
+	style     int
+	termwid   int
 	err       error
+
+	// position in current line (used for smart style)
+	linepos int
 }
 
 type frameType int
@@ -34,9 +42,31 @@ const (
 	frameObject
 )
 
+const (
+	SimpleStyle int = iota
+	SmartStyle
+	PrettyStyle
+)
+
 type pathStackFrame struct {
 	typ   frameType
 	level int
+}
+
+func getSystemTermWidth() int {
+	var wid, hei int
+
+	cmd := exec.Command("stty", "size")
+	cmd.Stdin = os.Stdin
+	out, err := cmd.Output()
+
+	if err != nil {
+		return 80
+	}
+
+	fmt.Sscanf(string(out), "%d %d", &hei, &wid)
+
+	return wid
 }
 
 func NewPrinter() *JsonPrinter {
@@ -44,7 +74,10 @@ func NewPrinter() *JsonPrinter {
 		state:     stateInit,
 		pathStack: list.New(),
 		buffer:    bytes.NewBuffer([]byte{}),
+		style:     SimpleStyle,
+		termwid:   getSystemTermWidth(),
 		err:       nil,
+		linepos:   0,
 	}
 
 	return printer
@@ -54,11 +87,24 @@ func (printer *JsonPrinter) Reset() {
 	printer.state = stateInit
 	printer.pathStack = list.New()
 	printer.buffer = bytes.NewBuffer([]byte{})
+	printer.style = SimpleStyle
+	printer.termwid = getSystemTermWidth()
 	printer.err = nil
+	printer.linepos = 0
 }
 
 func (printer *JsonPrinter) Error() error {
 	return printer.err
+}
+
+func (printer *JsonPrinter) SetStyle(style int, termwid int) error {
+	if printer.state != stateInit {
+		return errors.New("Style cannot changed after putting some items")
+	}
+
+	printer.style = style
+	printer.termwid = termwid
+	return nil
 }
 
 func (printer *JsonPrinter) String() (string, error) {
@@ -84,17 +130,32 @@ func (printer *JsonPrinter) BeginArray() error {
 		return printer.err
 	}
 
-	if printer.state == stateArray1 {
-		printer.buffer.WriteString(",")
-	}
-	printer.buffer.WriteString("[")
-
 	var cur_level int
 	if printer.pathStack.Len() == 0 {
 		cur_level = 0
 	} else {
 		cur_level = printer.pathStack.Back().Value.(*pathStackFrame).level
 	}
+
+	if printer.state == stateArray1 {
+		printer.buffer.WriteString(",")
+		printer.linepos += 1
+	}
+
+	if printer.style == SmartStyle {
+		if printer.state == stateArray1 || printer.state == stateObjectKeyed {
+			if cur_level > 0 {
+				printer.buffer.WriteString("\n")
+			}
+			printer.linepos = 0
+			for i := 0; i < cur_level; i++ {
+				printer.buffer.WriteString(" ")
+				printer.linepos += 1
+			}
+		}
+	}
+	printer.buffer.WriteString("[")
+	printer.linepos += 1
 
 	printer.pathStack.PushBack(&pathStackFrame{typ: frameArray, level: cur_level + 1})
 	printer.state = stateArray0
@@ -121,6 +182,28 @@ func (printer *JsonPrinter) FinishArray() error {
 		return printer.err
 	}
 
+	cur_level := printer.pathStack.Back().Value.(*pathStackFrame).level
+
+	if printer.style == SmartStyle {
+		if cur_level == 1 {
+			if printer.linepos+1 > printer.termwid {
+				printer.buffer.WriteString("\n")
+				printer.linepos = 0
+				printer.buffer.WriteString(" ")
+				printer.linepos += 1
+			}
+		} else {
+			if printer.linepos+2 > printer.termwid {
+				printer.buffer.WriteString("\n")
+				printer.linepos = 0
+				for i := 0; i < cur_level; i++ {
+					printer.buffer.WriteString(" ")
+					printer.linepos += 1
+				}
+			}
+		}
+	}
+
 	printer.buffer.WriteString("]")
 	printer.pathStack.Remove(printer.pathStack.Back())
 
@@ -136,6 +219,37 @@ func (printer *JsonPrinter) FinishArray() error {
 			printer.err = errors.New("Cannot happen this case")
 			return printer.err
 		}
+	}
+
+	return nil
+}
+
+func (printer *JsonPrinter) PutArray(arr []interface{}) error {
+	if err := printer.BeginArray(); err != nil {
+		return err
+	}
+
+	for _, v := range arr {
+		switch v.(type) {
+		case int:
+			if err := printer.PutInt(v.(int)); err != nil {
+				return err
+			}
+		case float64:
+			if err := printer.PutFloat(v.(float64)); err != nil {
+				return err
+			}
+		case string:
+			if err := printer.PutString(v.(string)); err != nil {
+				return err
+			}
+		default:
+			return errors.New("unknown type in array")
+		}
+	}
+
+	if err := printer.FinishArray(); err != nil {
+		return err
 	}
 
 	return nil
@@ -224,18 +338,54 @@ func (printer *JsonPrinter) putLiteral(literal string) error {
 		return printer.err
 	}
 
+	var cur_level int
+	if printer.pathStack.Len() == 0 {
+		cur_level = 0
+	} else {
+		cur_level = printer.pathStack.Back().Value.(*pathStackFrame).level
+	}
+
 	if printer.state == stateArray0 {
 		printer.state = stateArray1
 	} else if printer.state == stateArray1 {
-		printer.buffer.WriteString(",")
+		if printer.style == SmartStyle {
+			if printer.linepos+2+len(literal) >= printer.termwid {
+				printer.buffer.WriteString(",\n")
+				printer.linepos = 0
+				for i := 0; i < cur_level; i++ {
+					printer.buffer.WriteString(" ")
+					printer.linepos += 1
+				}
+			} else {
+				printer.buffer.WriteString(", ")
+				printer.linepos += 2
+			}
+		} else {
+			printer.buffer.WriteString(",")
+			printer.linepos += 1
+		}
 		printer.state = stateArray1
 	} else if printer.state == stateInit {
 		printer.state = stateFinal
 	} else if printer.state == stateObjectKeyed {
 		printer.state = stateObject1
+		if printer.style == SmartStyle {
+			if printer.linepos+1+len(literal) >= printer.termwid {
+				printer.buffer.WriteString("\n")
+				printer.linepos = 0
+				for i := 0; i < cur_level; i++ {
+					printer.buffer.WriteString(" ")
+					printer.linepos += 1
+				}
+			} else {
+				printer.buffer.WriteString(" ")
+				printer.linepos += 1
+			}
+		}
 	}
 
 	printer.buffer.WriteString(literal)
+	printer.linepos += len(literal)
 
 	return nil
 }
@@ -271,11 +421,29 @@ func (printer *JsonPrinter) PutKey(v string) error {
 		return err
 	}
 
+	cur_level := printer.pathStack.Back().Value.(*pathStackFrame).level
+
+	vss := string(vs)
+
 	if printer.state != stateObject0 {
-		printer.buffer.WriteString(",")
+		if printer.style == SmartStyle {
+			if printer.linepos+3+len(vss) > printer.termwid {
+				printer.buffer.WriteString(",\n")
+				printer.linepos = 0
+				for i := 0; i < cur_level; i++ {
+					printer.buffer.WriteString(" ")
+					printer.linepos += 1
+				}
+			}
+		} else {
+			printer.buffer.WriteString(",")
+			printer.linepos += 1
+		}
 	}
-	printer.buffer.WriteString(string(vs))
+	printer.buffer.WriteString(vss)
+	printer.linepos += len(vss)
 	printer.buffer.WriteString(":")
+	printer.linepos += 1
 	printer.state = stateObjectKeyed
 
 	return nil
