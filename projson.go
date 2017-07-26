@@ -327,6 +327,41 @@ func (printer *JsonPrinter) FinishObject() error {
 	return nil
 }
 
+func (printer *JsonPrinter) PutObject(m map[string]interface{}) error {
+	if err := printer.BeginObject(); err != nil {
+		return err
+	}
+
+	for k, v := range m {
+		if err := printer.PutKey(k); err != nil {
+			return err
+		}
+
+		switch v.(type) {
+		case int:
+			if err := printer.PutInt(v.(int)); err != nil {
+				return err
+			}
+		case float64:
+			if err := printer.PutFloat(v.(float64)); err != nil {
+				return err
+			}
+		case string:
+			if err := printer.PutString(v.(string)); err != nil {
+				return err
+			}
+		default:
+			return errors.New("unknown type in array")
+		}
+	}
+
+	if err := printer.FinishObject(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (printer *JsonPrinter) putLiteral(literal string) error {
 	switch printer.state {
 	case stateInit: // OK

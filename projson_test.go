@@ -308,6 +308,17 @@ func TestObjectSimple(t *testing.T) {
 	}
 }
 
+func TestPutObjectSimple(t *testing.T) {
+	jp := NewPrinter()
+
+	jp.PutObject(map[string]interface{}{"key1": 10})
+
+	expected := `{"key1":10}`
+	if actual, _ := jp.String(); expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
+}
+
 func TestObjectEmpty(t *testing.T) {
 	jp := NewPrinter()
 
