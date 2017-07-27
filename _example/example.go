@@ -47,4 +47,10 @@ func main() {
 	jp.PutObject(map[string]interface{}{"key1": 1, "key2": "str2", "key3": 4.56})
 	str, _ = jp.String()
 	fmt.Println(str) // => {"key1":1,"key2":"str2","key3":4.56}
+
+	jp.Reset()
+	jp.SetStyle(projson.SmartStyle)
+	jp.PutObject(map[string]interface{}{"time": 10.0, "key1": "val1"})
+	str, _ = jp.String()
+	fmt.Println(str)
 }
