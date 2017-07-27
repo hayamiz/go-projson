@@ -433,6 +433,10 @@ func (printer *JsonPrinter) PutFloat(v float64) error {
 	return printer.putLiteral(strconv.FormatFloat(v, 'f', -1, 64))
 }
 
+func (printer *JsonPrinter) PutFloatFmt(v float64, fmtstr string) error {
+	return printer.putLiteral(fmt.Sprintf(fmtstr, v))
+}
+
 func (printer *JsonPrinter) PutString(v string) error {
 	vs, err := json.Marshal(v)
 	if err != nil {

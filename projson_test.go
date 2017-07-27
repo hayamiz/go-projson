@@ -493,3 +493,14 @@ func TestObjectSimpleSmartStyle(t *testing.T) {
 		t.Errorf("expected: %v\nactual: %v", expected, actual)
 	}
 }
+
+func TestPutFloatFmt(t *testing.T) {
+	p := NewPrinter()
+
+	p.PutFloatFmt(1.2345, "%.2f")
+
+	expected := "1.23"
+	if actual, _ := p.String(); actual != expected {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
+}
