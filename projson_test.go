@@ -379,22 +379,27 @@ func TestObject(t *testing.T) {
 func TestSetStyle(t *testing.T) {
 	jp := NewPrinter()
 
-	err := jp.SetStyle(SimpleStyle, 80)
+	err := jp.SetStyle(SimpleStyle)
 	if err != nil {
 		t.Error("expected: err == nil, actual: err != nil")
 	}
-	err = jp.SetStyle(SmartStyle, 80)
+	err = jp.SetTermWidth(80)
 	if err != nil {
 		t.Error("expected: err == nil, actual: err != nil")
 	}
-	err = jp.SetStyle(PrettyStyle, 80)
+
+	err = jp.SetStyle(SmartStyle)
+	if err != nil {
+		t.Error("expected: err == nil, actual: err != nil")
+	}
+	err = jp.SetStyle(PrettyStyle)
 	if err != nil {
 		t.Error("expected: err == nil, actual: err != nil")
 	}
 
 	jp.PutInt(42)
 
-	err = jp.SetStyle(SimpleStyle, 80)
+	err = jp.SetStyle(SimpleStyle)
 	if err == nil {
 		t.Error("SetStyle should return error after putting items")
 	}
@@ -403,7 +408,8 @@ func TestSetStyle(t *testing.T) {
 func TestArraySimpleSmartStyle(t *testing.T) {
 	jp := NewPrinter()
 
-	jp.SetStyle(SmartStyle, 10)
+	jp.SetStyle(SmartStyle)
+	jp.SetTermWidth(10)
 
 	jp.BeginArray()
 	jp.PutInt(10)
@@ -424,7 +430,8 @@ func TestArraySimpleSmartStyle(t *testing.T) {
 	}
 
 	jp.Reset()
-	jp.SetStyle(SmartStyle, 10)
+	jp.SetStyle(SmartStyle)
+	jp.SetTermWidth(10)
 
 	jp.BeginArray()
 	jp.PutString("1234567890")
@@ -468,7 +475,8 @@ func TestArraySimpleSmartStyle(t *testing.T) {
 func TestObjectSimpleSmartStyle(t *testing.T) {
 	jp := NewPrinter()
 
-	jp.SetStyle(SmartStyle, 10)
+	jp.SetStyle(SmartStyle)
+	jp.SetTermWidth(10)
 
 	jp.BeginObject()
 	jp.PutKey("key")

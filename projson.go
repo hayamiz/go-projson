@@ -97,12 +97,20 @@ func (printer *JsonPrinter) Error() error {
 	return printer.err
 }
 
-func (printer *JsonPrinter) SetStyle(style int, termwid int) error {
+func (printer *JsonPrinter) SetStyle(style int) error {
 	if printer.state != stateInit {
 		return errors.New("Style cannot changed after putting some items")
 	}
 
 	printer.style = style
+	return nil
+}
+
+func (printer *JsonPrinter) SetTermWidth(termwid int) error {
+	if printer.state != stateInit {
+		return errors.New("Terminal width cannot changed after putting some items")
+	}
+
 	printer.termwid = termwid
 	return nil
 }
