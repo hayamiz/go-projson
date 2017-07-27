@@ -502,6 +502,33 @@ func TestObjectSimpleSmartStyle(t *testing.T) {
 	}
 }
 
+func TestObjectSimpleSmartStyle2(t *testing.T) {
+	jp := NewPrinter()
+
+	jp.SetStyle(SmartStyle)
+	jp.SetTermWidth(80)
+
+	jp.BeginObject()
+	jp.PutKey("key")
+	jp.PutString("val")
+	jp.PutKey("k")
+	jp.PutString("v")
+	jp.PutKey("k")
+	jp.BeginArray()
+	jp.PutInt(1)
+	jp.PutInt(2)
+	jp.FinishArray()
+	jp.FinishObject()
+
+	expected := `{"key": "val", "k": "v", "k":
+ [1, 2]}`
+	actual, _ := jp.String()
+
+	if expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
+}
+
 func TestPutFloatFmt(t *testing.T) {
 	p := NewPrinter()
 

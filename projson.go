@@ -481,6 +481,9 @@ func (printer *JsonPrinter) PutKey(v string) error {
 					printer.buffer.WriteString(" ")
 					printer.linepos += 1
 				}
+			} else {
+				printer.buffer.WriteString(", ")
+				printer.linepos += 2
 			}
 		} else {
 			printer.buffer.WriteString(",")
