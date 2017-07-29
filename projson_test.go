@@ -554,6 +554,28 @@ func TestObjectSimpleSmartStyle2(t *testing.T) {
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v", expected, actual)
 	}
+
+	jp.Reset()
+	jp.SetStyle(SmartStyle)
+	jp.SetTermWidth(80)
+
+	jp.BeginObject()
+	jp.PutKey("key1")
+	jp.BeginObject()
+	jp.PutKey("key2")
+	jp.PutArray([]interface{}{"elem1", "elem2", "elem3"})
+	jp.PutKey("key3")
+	jp.PutObject(map[string]interface{}{"key4": 1.5, "key5": 1.5})
+	jp.FinishObject()
+	jp.FinishObject()
+
+	expected = `{"key1": {"key2": ["elem1", "elem2", "elem3"],
+  "key3": {"key4": 1.5, "key5": 1.5}}}`
+	actual, _ = jp.String()
+
+	if expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
 }
 
 func TestPutFloatFmt(t *testing.T) {

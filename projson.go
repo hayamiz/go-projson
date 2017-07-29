@@ -325,14 +325,14 @@ func (printer *JsonPrinter) BeginObject() error {
 	var newchunk string
 	if printer.style == SmartStyle {
 		if printer.state == stateObject0Keyed {
-			newchunk = fmt.Sprintf("\n%s%s: {", indent(" ", cur_level), printer.curKey)
+			newchunk = fmt.Sprintf("%s: {", printer.curKey)
 			printer.buffer.WriteString(newchunk)
-			printer.linepos += len(newchunk) - 2 + len(indent(" ", cur_level))
+			printer.linepos = len(newchunk) - 1 + len(indent(" ", cur_level))
 			printer.curKey = ""
 		} else if printer.state == stateObject1Keyed {
 			newchunk = fmt.Sprintf(",\n%s%s: {", indent(" ", cur_level), printer.curKey)
 			printer.buffer.WriteString(newchunk)
-			printer.linepos += len(newchunk) - 2 + len(indent(" ", cur_level))
+			printer.linepos = len(newchunk) - 2 + len(indent(" ", cur_level))
 			printer.curKey = ""
 		} else if printer.state == stateInit || printer.state == stateArray0 {
 			newchunk = fmt.Sprintf("{")
