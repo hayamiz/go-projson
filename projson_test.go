@@ -459,12 +459,12 @@ func TestArraySimpleSmartStyle(t *testing.T) {
 	jp.FinishArray()
 
 	expected = `["1234567890",
- 10, 20,
- [1, 2, 3,
+ 10, 20, [
+  1, 2, 3,
   4, 5, 6
-  ],
- [1, 234],
- [[[1]]]]`
+  ], [1,
+  234], [[
+   [1]]]]`
 	actual, _ = jp.String()
 
 	if expected != actual {
@@ -490,16 +490,37 @@ func TestObjectSimpleSmartStyle(t *testing.T) {
 	jp.FinishArray()
 	jp.FinishObject()
 
-	expected := `{"key":
- "val",
+	expected := `{"key": "val",
  "k": "v",
- "k":
- [1, 2]}`
+ "k": [
+  1, 2]}`
 	actual, _ := jp.String()
 
 	if expected != actual {
 		t.Errorf("expected: %v\nactual: %v", expected, actual)
 	}
+
+	jp.Reset()
+	jp.SetTermWidth(80)
+	jp.SetStyle(SmartStyle)
+
+	jp.BeginObject()
+	jp.PutKey("key1")
+	jp.PutString("val1")
+	jp.PutKey("key2")
+	jp.PutString("val2")
+	jp.PutKey("key3")
+	jp.PutArray([]interface{}{1, 2, 3, 4})
+	jp.FinishObject()
+
+	expected = `{"key1": "val1", "key2": "val2",
+ "key3": [1, 2, 3, 4]}`
+	actual, _ = jp.String()
+
+	if expected != actual {
+		t.Errorf("expected: %v\nactual: %v", expected, actual)
+	}
+
 }
 
 func TestObjectSimpleSmartStyle2(t *testing.T) {
@@ -520,8 +541,8 @@ func TestObjectSimpleSmartStyle2(t *testing.T) {
 	jp.FinishArray()
 	jp.FinishObject()
 
-	expected := `{"key": "val", "k": "v", "k":
- [1, 2]}`
+	expected := `{"key": "val", "k": "v",
+ "k": [1, 2]}`
 	actual, _ := jp.String()
 
 	if expected != actual {
