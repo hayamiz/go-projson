@@ -24,12 +24,24 @@ const (
 	stateObject1Keyed // object with key specified
 )
 
+const (
+	colorBlack   = 30
+	colorRed     = 31
+	colorGreen   = 32
+	colorYellow  = 33
+	colorBlue    = 34
+	colorMagenta = 35
+	colorCyan    = 36
+	colorWhite   = 37
+)
+
 type JsonPrinter struct {
 	state     printerState
 	pathStack *list.List
 	buffer    *bytes.Buffer
 	style     int
 	termwid   int
+	color     bool
 	err       error
 
 	// position in current line (used for smart style)
@@ -78,6 +90,7 @@ func NewPrinter() *JsonPrinter {
 		buffer:    bytes.NewBuffer([]byte{}),
 		style:     SimpleStyle,
 		termwid:   getSystemTermWidth(),
+		color:     false,
 		err:       nil,
 		linepos:   0,
 	}
@@ -91,6 +104,7 @@ func (printer *JsonPrinter) Reset() {
 	printer.buffer = bytes.NewBuffer([]byte{})
 	printer.style = SimpleStyle
 	printer.termwid = getSystemTermWidth()
+	printer.color = false
 	printer.err = nil
 	printer.linepos = 0
 }
@@ -117,6 +131,15 @@ func (printer *JsonPrinter) SetTermWidth(termwid int) error {
 	return nil
 }
 
+func (printer *JsonPrinter) SetColor(color bool) error {
+	if printer.state != stateInit {
+		return errors.New("Color mode cannot changed after putting some items")
+	}
+
+	printer.color = color
+	return nil
+}
+
 func (printer *JsonPrinter) String() (string, error) {
 	if printer.state == stateInit || printer.state == stateFinal {
 		return printer.buffer.String(), nil
@@ -132,6 +155,10 @@ func indent(str string, n int) string {
 	}
 
 	return buffer.String()
+}
+
+func color(str string, colorcode int) string {
+	return fmt.Sprintf("\033[%dm%s\033[0m", colorcode, str)
 }
 
 func (printer *JsonPrinter) BeginArray() error {
@@ -158,15 +185,26 @@ func (printer *JsonPrinter) BeginArray() error {
 	}
 
 	var newchunk string
+	var colorchunk string
 	if printer.style == SmartStyle {
 		if printer.state == stateObject0Keyed {
 			newchunk = fmt.Sprintf("%s: [", printer.curKey)
-			printer.buffer.WriteString(newchunk)
+			colorchunk = fmt.Sprintf("%s: [", color(printer.curKey, colorRed))
+			if printer.color {
+				printer.buffer.WriteString(colorchunk)
+			} else {
+				printer.buffer.WriteString(newchunk)
+			}
 			printer.linepos += len(newchunk)
 			printer.curKey = ""
 		} else if printer.state == stateObject1Keyed {
 			newchunk = fmt.Sprintf(",\n%s%s: [", indent(" ", cur_level), printer.curKey)
-			printer.buffer.WriteString(newchunk)
+			colorchunk = fmt.Sprintf(",\n%s%s: [", indent(" ", cur_level), color(printer.curKey, colorRed))
+			if printer.color {
+				printer.buffer.WriteString(colorchunk)
+			} else {
+				printer.buffer.WriteString(newchunk)
+			}
 			printer.linepos += len(newchunk) - 2 + len(indent(" ", cur_level))
 			printer.curKey = ""
 		} else if printer.state == stateInit || printer.state == stateArray0 {
@@ -323,15 +361,26 @@ func (printer *JsonPrinter) BeginObject() error {
 	}
 
 	var newchunk string
+	var colorchunk string
 	if printer.style == SmartStyle {
 		if printer.state == stateObject0Keyed {
 			newchunk = fmt.Sprintf("%s: {", printer.curKey)
-			printer.buffer.WriteString(newchunk)
+			colorchunk = fmt.Sprintf("%s: {", color(printer.curKey, colorRed))
+			if printer.color {
+				printer.buffer.WriteString(colorchunk)
+			} else {
+				printer.buffer.WriteString(newchunk)
+			}
 			printer.linepos = len(newchunk) - 1 + len(indent(" ", cur_level))
 			printer.curKey = ""
 		} else if printer.state == stateObject1Keyed {
 			newchunk = fmt.Sprintf(",\n%s%s: {", indent(" ", cur_level), printer.curKey)
-			printer.buffer.WriteString(newchunk)
+			colorchunk = fmt.Sprintf(",\n%s%s: {", indent(" ", cur_level), color(printer.curKey, colorRed))
+			if printer.color {
+				printer.buffer.WriteString(colorchunk)
+			} else {
+				printer.buffer.WriteString(newchunk)
+			}
 			printer.linepos = len(newchunk) - 2 + len(indent(" ", cur_level))
 			printer.curKey = ""
 		} else if printer.state == stateInit || printer.state == stateArray0 {
@@ -441,7 +490,7 @@ func (printer *JsonPrinter) PutObject(m map[string]interface{}) error {
 	return nil
 }
 
-func (printer *JsonPrinter) putLiteral(literal string) error {
+func (printer *JsonPrinter) putLiteral(literal string, colorliteral string) error {
 	switch printer.state {
 	case stateInit: // OK
 	case stateArray0: // OK
@@ -461,30 +510,38 @@ func (printer *JsonPrinter) putLiteral(literal string) error {
 	}
 
 	var newchunk string
+	var colorchunk string
 	commasep := false
 	switch printer.state {
 	case stateInit:
 		newchunk = literal
+		colorchunk = colorliteral
 	case stateArray0:
 		newchunk = literal
+		colorchunk = colorliteral
 	case stateArray1:
 		commasep = true
 		newchunk = literal
+		colorchunk = colorliteral
 	case stateObject0Keyed:
 		if printer.style == SmartStyle {
 			newchunk = fmt.Sprintf("%s: %s", printer.curKey, literal)
+			colorchunk = fmt.Sprintf("%s: %s", color(printer.curKey, colorRed), colorliteral)
 			printer.curKey = ""
 		} else {
 			newchunk = fmt.Sprintf("%s:%s", printer.curKey, literal)
+			colorchunk = newchunk
 			printer.curKey = ""
 		}
 	case stateObject1Keyed:
 		commasep = true
 		if printer.style == SmartStyle {
 			newchunk = fmt.Sprintf("%s: %s", printer.curKey, literal)
+			colorchunk = fmt.Sprintf("%s: %s", color(printer.curKey, colorRed), colorliteral)
 			printer.curKey = ""
 		} else {
 			newchunk = fmt.Sprintf("%s:%s", printer.curKey, literal)
+			colorchunk = newchunk
 			printer.curKey = ""
 		}
 	}
@@ -507,7 +564,13 @@ func (printer *JsonPrinter) putLiteral(literal string) error {
 				printer.linepos += 2
 			}
 		}
-		printer.buffer.WriteString(newchunk)
+
+		if printer.color {
+			printer.buffer.WriteString(colorchunk)
+		} else {
+			printer.buffer.WriteString(newchunk)
+		}
+
 		printer.linepos += len(newchunk)
 	} else {
 		if commasep {
@@ -533,15 +596,18 @@ func (printer *JsonPrinter) putLiteral(literal string) error {
 }
 
 func (printer *JsonPrinter) PutInt(v int) error {
-	return printer.putLiteral(strconv.Itoa(v))
+	str := strconv.Itoa(v)
+	return printer.putLiteral(str, color(str, colorGreen))
 }
 
 func (printer *JsonPrinter) PutFloat(v float64) error {
-	return printer.putLiteral(strconv.FormatFloat(v, 'f', -1, 64))
+	str := strconv.FormatFloat(v, 'f', -1, 64)
+	return printer.putLiteral(str, color(str, colorCyan))
 }
 
 func (printer *JsonPrinter) PutFloatFmt(v float64, fmtstr string) error {
-	return printer.putLiteral(fmt.Sprintf(fmtstr, v))
+	str := fmt.Sprintf(fmtstr, v)
+	return printer.putLiteral(str, color(str, colorCyan))
 }
 
 func (printer *JsonPrinter) PutString(v string) error {
@@ -549,8 +615,9 @@ func (printer *JsonPrinter) PutString(v string) error {
 	if err != nil {
 		return err
 	}
+	str := string(vs)
 
-	return printer.putLiteral(string(vs))
+	return printer.putLiteral(str, color(str, colorMagenta))
 }
 
 func (printer *JsonPrinter) PutKey(v string) error {
