@@ -330,7 +330,7 @@ func (printer *JsonPrinter) BeginObject() error {
 			printer.linepos += len(newchunk) - 2 + len(indent(" ", cur_level))
 			printer.curKey = ""
 		} else if printer.state == stateObject1Keyed {
-			newchunk = fmt.Sprintf(",\n%s%s: [", indent(" ", cur_level), printer.curKey)
+			newchunk = fmt.Sprintf(",\n%s%s: {", indent(" ", cur_level), printer.curKey)
 			printer.buffer.WriteString(newchunk)
 			printer.linepos += len(newchunk) - 2 + len(indent(" ", cur_level))
 			printer.curKey = ""
@@ -386,6 +386,7 @@ func (printer *JsonPrinter) FinishObject() error {
 	}
 
 	printer.buffer.WriteString("}")
+	printer.linepos += 1
 	printer.pathStack.Remove(printer.pathStack.Back())
 
 	if printer.pathStack.Len() == 0 {

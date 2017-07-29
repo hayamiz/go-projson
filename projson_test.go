@@ -511,10 +511,16 @@ func TestObjectSimpleSmartStyle(t *testing.T) {
 	jp.PutString("val2")
 	jp.PutKey("key3")
 	jp.PutArray([]interface{}{1, 2, 3, 4})
+	jp.PutKey("key4")
+	jp.BeginObject()
+	jp.PutKey("key5")
+	jp.PutInt(5)
+	jp.FinishObject()
 	jp.FinishObject()
 
 	expected = `{"key1": "val1", "key2": "val2",
- "key3": [1, 2, 3, 4]}`
+ "key3": [1, 2, 3, 4],
+ "key4": {"key5": 5}}`
 	actual, _ = jp.String()
 
 	if expected != actual {
