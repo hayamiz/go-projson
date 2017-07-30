@@ -539,7 +539,7 @@ func (printer *JsonPrinter) putLiteral(literal string, colorliteral string) erro
 			printer.curKey = ""
 		} else {
 			newchunk = fmt.Sprintf("%s:%s", printer.curKey, literal)
-			colorchunk = newchunk
+			colorchunk = fmt.Sprintf("%s:%s", color(printer.curKey, colorKey), colorliteral)
 			printer.curKey = ""
 		}
 	case stateObject1Keyed:
@@ -550,7 +550,7 @@ func (printer *JsonPrinter) putLiteral(literal string, colorliteral string) erro
 			printer.curKey = ""
 		} else {
 			newchunk = fmt.Sprintf("%s:%s", printer.curKey, literal)
-			colorchunk = newchunk
+			colorchunk = fmt.Sprintf("%s:%s", color(printer.curKey, colorKey), colorliteral)
 			printer.curKey = ""
 		}
 	}
@@ -585,7 +585,11 @@ func (printer *JsonPrinter) putLiteral(literal string, colorliteral string) erro
 		if commasep {
 			printer.buffer.WriteString(",")
 		}
-		printer.buffer.WriteString(newchunk)
+		if printer.color {
+			printer.buffer.WriteString(colorchunk)
+		} else {
+			printer.buffer.WriteString(newchunk)
+		}
 		printer.linepos += len(newchunk)
 	}
 
