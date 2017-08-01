@@ -38,7 +38,7 @@ const (
 )
 
 const (
-	colorKey    = colorBold
+	colorKey    = colorRed
 	colorInt    = colorGreen
 	colorFloat  = colorCyan
 	colorString = colorMagenta
@@ -239,10 +239,18 @@ func (printer *JsonPrinter) BeginArray() error {
 		case stateArray1:
 			printer.buffer.WriteString(",[")
 		case stateObject0Keyed:
-			printer.buffer.WriteString(fmt.Sprintf("%s:[", printer.curKey))
+			if printer.color {
+				printer.buffer.WriteString(fmt.Sprintf("%s:[", color(printer.curKey, colorKey)))
+			} else {
+				printer.buffer.WriteString(fmt.Sprintf("%s:[", printer.curKey))
+			}
 			printer.curKey = ""
 		case stateObject1Keyed:
-			printer.buffer.WriteString(fmt.Sprintf(",%s:[", printer.curKey))
+			if printer.color {
+				printer.buffer.WriteString(fmt.Sprintf(",%s:[", color(printer.curKey, colorKey)))
+			} else {
+				printer.buffer.WriteString(fmt.Sprintf(",%s:[", printer.curKey))
+			}
 			printer.curKey = ""
 		}
 	}
@@ -410,10 +418,18 @@ func (printer *JsonPrinter) BeginObject() error {
 		case stateArray1:
 			printer.buffer.WriteString(",{")
 		case stateObject0Keyed:
-			printer.buffer.WriteString(fmt.Sprintf("%s:{", printer.curKey))
+			if printer.color {
+				printer.buffer.WriteString(fmt.Sprintf("%s:{", color(printer.curKey, colorKey)))
+			} else {
+				printer.buffer.WriteString(fmt.Sprintf("%s:{", printer.curKey))
+			}
 			printer.curKey = ""
 		case stateObject1Keyed:
-			printer.buffer.WriteString(fmt.Sprintf(",%s:{", printer.curKey))
+			if printer.color {
+				printer.buffer.WriteString(fmt.Sprintf(",%s:{", color(printer.curKey, colorKey)))
+			} else {
+				printer.buffer.WriteString(fmt.Sprintf(",%s:{", printer.curKey))
+			}
 			printer.curKey = ""
 		}
 	}
