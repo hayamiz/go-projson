@@ -39,7 +39,7 @@ func main() {
     printer.BeginObject()
 
     printer.PutKey("key1")
-    printer.PutKey(12345)  // => "key1":12345
+    printer.PutInt(12345)  // => "key1":12345
 
     printer.PutKey("key2")
     printer.BeginArray()
