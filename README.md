@@ -25,7 +25,7 @@ Basic usage of `go-projson` is:
 
 ## Example 1: basic usage
 
-```
+```go
 package main
 
 import (
@@ -60,20 +60,20 @@ func main() {
 
 ## Example 2: just print int, float, or string
 
-```
+```go
     printer := projson.NewPrinter()
     printer.PutInt(42)
     str, _ := printer.String() // => 42
 ```
 
-```
+```go
     printer := projson.NewPrinter()
     printer.PutFloat(123.45)
 
     str, _ := printer.String() // => 123.45
 ```
 
-```
+```go
     printer := projson.NewPrinter()
     printer.PutString("hello, projson")
 
@@ -82,7 +82,7 @@ func main() {
 
 ## Example 3: nested array and nested object
 
-```
+```go
     printer := projson.NewPrinter()
 
     printer.BeginArray()
@@ -99,7 +99,7 @@ func main() {
     str, _ := printer.String() // => [123,[456.7,["nest, nest and nest"],"nest depth = two here"]]
 ```
 
-```
+```go
     printer := projson.NewPrinter()
 
     printer.BeginObject()
@@ -123,7 +123,7 @@ func main() {
 
 ### Default formatting
 
-```
+```go
     printer := projson.NewPrinter()
     // build JSON output here ...
     str, _ := printer.String()
@@ -134,7 +134,7 @@ func main() {
 
 ### SmartStyle formatting
 
-```
+```go
     printer := projson.NewPrinter()
     printer.SetStyle(projson.SmartStyle)
     // build JSON output here ...
@@ -146,7 +146,7 @@ func main() {
 
 ### Colored SmartStyle formatting
 
-```
+```go
     printer := projson.NewPrinter()
     printer.SetStyle(projson.SmartStyle)
     printer.SetColor(true)
