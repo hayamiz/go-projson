@@ -2,7 +2,9 @@
 
 [<img src="https://travis-ci.org/hayamiz/go-projson.svg?branch=master" />](https://travis-ci.org/hayamiz/go-projson)
 
-Procedural JSON printer for Go
+Procedural JSON printer for Go with pretty and compact output formatting.
+
+![projson sample output](https://raw.githubusercontent.com/hayamiz/go-projson/master/misc/sample-output.png)
 
 # Installation
 
@@ -14,11 +16,12 @@ $ go get github.com/hayamiz/go-projson
 
 Basic usage of `go-projson` is:
 
-1. Create `JsonPrinter` object by calling `projson.NewPrinter()` func.
+1. Create `JsonPrinter` object by calling `projson.NewPrinter()` function.
 2. Put JSON elements (int, float, string, object, array) one by one with following APIs:
   - `PutInt`, `PutFloat`, `PutString` ... functions for putting JSON primitive data.
   - `BeginArray`, `FinishArray` ... functions for putting arrays. Elements of an array are constructed by projson API calls between corresponding `BeginArray` and `FinishArray`.
   - `BeginObject`, `FinishObject` ... functions for putting objects. Members of an object are constructed by projson API calls between corresponding `BeginObject` and `FinishObject`, and each member must be keyed by a preceding `PutKey` API call.
+3. Get JSON output string with `String` function
 
 ## Example 1: basic usage
 
@@ -77,7 +80,7 @@ func main() {
     str, _ := printer.String() // => "hello, projson"
 ```
 
-## Example 2: nested array and nested object
+## Example 3: nested array and nested object
 
 ```
     printer := projson.NewPrinter()
@@ -115,6 +118,44 @@ func main() {
 
     str, _ := printer.String() // => {"key1":{"nested key1":12345,"nested key2":{"double nested key1":678.9}}}
 ```
+
+## Example 4: formatting styles and coloring
+
+### Default formatting
+
+```
+    printer := projson.NewPrinter()
+    // build JSON output here ...
+    str, _ := printer.String()
+    fmt.Println(str)
+```
+
+![default output formatting](https://raw.githubusercontent.com/hayamiz/go-projson/master/misc/default-output.png)
+
+### SmartStyle formatting
+
+```
+    printer := projson.NewPrinter()
+    printer.SetStyle(projson.SmartStyle)
+    // build JSON output here ...
+    str, _ := printer.String()
+    fmt.Println(str)
+```
+
+![SmartStyle output formatting](https://raw.githubusercontent.com/hayamiz/go-projson/master/misc/smart-output.png)
+
+### Colored SmartStyle formatting
+
+```
+    printer := projson.NewPrinter()
+    printer.SetStyle(projson.SmartStyle)
+    printer.SetColor(true)
+    // build JSON output here ...
+    str, _ := printer.String()
+    fmt.Println(str)
+```
+
+![Colored SmartStyle output formatting](https://raw.githubusercontent.com/hayamiz/go-projson/master/misc/smart-color-output.png)
 
 
 # License
