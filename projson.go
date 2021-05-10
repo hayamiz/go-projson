@@ -334,6 +334,10 @@ func (printer *JsonPrinter) PutArray(arr []interface{}) error {
 			if err := printer.PutInt(v.(int)); err != nil {
 				return err
 			}
+		case int64:
+			if err := printer.PutInt64(v.(int64)); err != nil {
+				return err
+			}
 		case float64:
 			if err := printer.PutFloat(v.(float64)); err != nil {
 				return err
@@ -626,6 +630,11 @@ func (printer *JsonPrinter) putLiteral(literal string, colorliteral string) erro
 
 func (printer *JsonPrinter) PutInt(v int) error {
 	str := strconv.Itoa(v)
+	return printer.putLiteral(str, color(str, colorInt))
+}
+
+func (printer *JsonPrinter) PutInt64(v int64) error {
+	str := strconv.FormatInt(v, 10)
 	return printer.putLiteral(str, color(str, colorInt))
 }
 

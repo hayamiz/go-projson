@@ -27,6 +27,29 @@ func TestInt(t *testing.T) {
 	}
 }
 
+func TestInt64(t *testing.T) {
+	var err error
+	jp := NewPrinter()
+
+	err = jp.PutInt64(12345)
+	if err != nil {
+		t.Error("expected: err == nil\nactual: err != nil")
+		return
+	}
+
+	expected := "12345"
+	actual, _ := jp.String()
+	if actual != expected {
+		t.Errorf("expected: %v\nactual: %v\n", expected, actual)
+	}
+
+	err = jp.PutInt64(56789)
+	if err == nil {
+		t.Error("expected: err != nil\nactual: err == nil")
+		return
+	}
+}
+
 func TestFloat(t *testing.T) {
 	var err error
 	jp := NewPrinter()
